@@ -1,0 +1,28 @@
+<h2>Listing authorities</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Hostname</th>
+      <th>Port</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for authority <- @authorities do %>
+    <tr>
+      <td><%= authority.hostname %></td>
+      <td><%= authority.port %></td>
+
+      <td class="text-right">
+        <%= link "Show", to: web_authority_path(@conn, :show, authority), class: "btn btn-default btn-xs" %>
+        <%= link "Edit", to: web_authority_path(@conn, :edit, authority), class: "btn btn-default btn-xs" %>
+        <%= link "Delete", to: web_authority_path(@conn, :delete, authority), method: :delete, class: "btn btn-danger btn-xs" %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<%= link "New authority", to: web_authority_path(@conn, :new), class: "btn btn-primary" %>

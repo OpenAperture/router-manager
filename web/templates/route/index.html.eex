@@ -1,0 +1,30 @@
+<h2>Listing routes for authority <%= display(@authority) %></h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Hostname</th>
+      <th>Port</th>
+      <th>SecureConnection</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for route <- @routes do %>
+    <tr>
+      <td><%= route.hostname %></td>
+      <td><%= route.port %></td>
+      <td><%= route.secure_connection %></td>
+
+      <td class="text-right">
+        <%= link "Show", to: web_authority_route_path(@conn, :show, @authority, route), class: "btn btn-default btn-xs" %>
+        <%= link "Edit", to: web_authority_route_path(@conn, :edit, @authority, route), class: "btn btn-default btn-xs" %>
+        <%= link "Delete", to: web_authority_route_path(@conn, :delete, @authority, route), method: :delete, class: "btn btn-danger btn-xs" %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<%= link "New route", to: web_authority_route_path(@conn, :new, @authority), class: "btn btn-primary" %>

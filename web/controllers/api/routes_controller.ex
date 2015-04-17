@@ -1,0 +1,2 @@
+defmodule RouterManager.RoutesController do
+end

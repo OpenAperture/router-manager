@@ -1,0 +1,3 @@
+<h2>Authority not found</h2>
+
+<%= link "Back", to: web_authority_path(@conn, :index) %>

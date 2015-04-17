@@ -1,0 +1,27 @@
+<h2>Show route</h2>
+
+<ul>
+
+  <li>
+    <strong>Authority:</strong>
+    <%= display(@authority) %>
+  </li>
+
+  <li>
+    <strong>Hostname:</strong>
+    <%= @route.hostname %>
+  </li>
+
+  <li>
+    <strong>Port:</strong>
+    <%= @route.port %>
+  </li>
+
+  <li>
+    <strong>SecureConnection:</strong>
+    <%= @route.secure_connection %>
+  </li>
+
+</ul>
+
+<%= link "Edit", to: web_authority_route_path(@conn, :edit, @authority, @route) %> | <%= link "Back", to: web_authority_route_path(@conn, :index, @authority) %>

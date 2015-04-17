@@ -1,0 +1,6 @@
+<h2>New authority</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: web_authority_path(@conn, :create) %>
+
+<%= link "Back", to: web_authority_path(@conn, :index) %>

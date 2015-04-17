@@ -1,0 +1,6 @@
+<h2>Edit route <%= display(@route) %></h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: web_authority_route_path(@conn, :update, @authority, @route) %>
+
+<%= link "Back", to: web_authority_route_path(@conn, :index, @authority) %>

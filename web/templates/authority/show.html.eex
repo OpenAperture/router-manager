@@ -1,0 +1,18 @@
+<h2>Showing authority <%= display(@authority) %></h2>
+<h4>See <%= link "Routes", to: web_authority_route_path(@conn, :index, @authority) %></h4>
+
+<ul>
+
+  <li>
+    <strong>Hostname:</strong>
+    <%= @authority.hostname %>
+  </li>
+
+  <li>
+    <strong>Port:</strong>
+    <%= @authority.port %>
+  </li>
+
+</ul>
+
+<%= link "Edit", to: web_authority_path(@conn, :edit, @authority) %> | <%= link "Back", to: web_authority_path(@conn, :index) %>
