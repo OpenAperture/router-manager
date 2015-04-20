@@ -22,6 +22,7 @@ defmodule RouterManager.Authority do
   def changeset(model, params \\ nil) do
     model
     |> cast(params, @required_fields, @optional_fields)
+    |> validate_length(:hostname, min: 1)
     |> validate_inclusion(:port, 1..65535, message: "invalid port number")
   end
 end

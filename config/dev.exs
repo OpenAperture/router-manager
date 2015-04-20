@@ -29,6 +29,6 @@ config :logger, :console, format: "[$level] $message\n"
 # Configure your database
 config :router_manager, RouterManager.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "router_manager_dev"
+  username: System.get_env("OPENAPERTURE_ROUTER_MANAGER_DB_USER") || "postgres",
+  password: System.get_env("OPENAPERTURE_ROUTER_MANAGER_DB_PASS") || "postgres",
+  database: System.get_env("OPENAPERTURE_ROUTER_MANAGER_DB_NAME") || "router_manager_dev"
