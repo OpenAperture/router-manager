@@ -24,4 +24,4 @@
 
 </ul>
 
-<%= link "Edit", to: web_authority_route_path(@conn, :edit, @authority, @route) %> | <%= link "Back", to: web_authority_route_path(@conn, :index, @authority) %>
+<%= link "Edit", to: web_route_path(@conn, :edit, @authority, @route) %> | <%= link "Back", to: web_route_path(@conn, :index, @authority) %>

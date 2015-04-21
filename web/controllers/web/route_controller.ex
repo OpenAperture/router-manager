@@ -5,11 +5,13 @@ defmodule RouterManager.RouteController do
 
   alias RouterManager.Route
   alias RouterManager.Authority
+  alias RouterManager.Endpoint
 
   plug :scrub_params, "route" when action in [:create, :update]
   plug :action
 
-  def index(conn, %{"authority_id" => authority_id}) do
+  # GET "/authorities/:parent_id/routes"
+  def index(conn, %{"parent_id" => authority_id}) do
     query = Authority
             |> where([a], a.id == ^authority_id)
             |> preload(:routes)
@@ -22,7 +24,8 @@ defmodule RouterManager.RouteController do
     end
   end
 
-  def new(conn, %{"authority_id" => authority_id}) do
+  # GET "/authorities/:parent_id/routes/new"
+  def new(conn, %{"parent_id" => authority_id}) do
     case Repo.get(Authority, authority_id) do
       nil ->
         render conn, "authority_not_found.html"
@@ -32,7 +35,8 @@ defmodule RouterManager.RouteController do
     end    
   end
 
-  def create(conn, %{"route" => route_params, "authority_id" => authority_id}) do
+  # POST "/authorities/:parent_id/routes"
+  def create(conn, %{"route" => route_params, "parent_id" => authority_id}) do
     query = Authority
             |> join(:left, [a], r in Route, r.authority_id == a.id and r.port == ^route_params["port"] and fragment("lower(?) = lower(?)", r.hostname, ^route_params["hostname"]))
             |> where([a, r], a.id == ^authority_id)
@@ -48,7 +52,7 @@ defmodule RouterManager.RouteController do
 
           conn
           |> put_flash(:info, "Route created successfully.")
-          |> redirect(to: web_authority_route_path(conn, :index, authority.id))
+          |> redirect(to: web_route_path(Endpoint, :index, authority.id))
         else
           render conn, "new.html", changeset: changeset, authority: authority
         end
@@ -64,7 +68,8 @@ defmodule RouterManager.RouteController do
     
   end
 
-  def show(conn, %{"authority_id" => authority_id, "id" => id}) do
+  # GET "/authorities/:parent_id/routes/:id"
+  def show(conn, %{"parent_id" => authority_id, "id" => id}) do
     case get_authority_and_route(authority_id, id) do
       nil ->
         render conn, "authority_not_found.html"
@@ -75,7 +80,8 @@ defmodule RouterManager.RouteController do
     end
   end
 
-  def edit(conn, %{"authority_id" => authority_id, "id" => id}) do
+  # GET "/authorities/:parent_id/routes/:id/edit"
+  def edit(conn, %{"parent_id" => authority_id, "id" => id}) do
     case get_authority_and_route(authority_id, id) do
       nil ->
         render conn, "authority_not_found.html"
@@ -87,7 +93,8 @@ defmodule RouterManager.RouteController do
     end
   end
 
-  def update(conn, %{"authority_id" => authority_id, "id" => id, "route" => route_params}) do
+  # PUT/PATCH "/authorities/:parent_id/routes/:id"
+  def update(conn, %{"parent_id" => authority_id, "id" => id, "route" => route_params}) do
     case get_authority_and_route(authority_id, id) do
       nil ->
         render conn, "authority_not_found.html"
@@ -107,7 +114,7 @@ defmodule RouterManager.RouteController do
 
               conn
               |> put_flash(:info, "Route updated successfully.")
-              |> redirect(to: web_authority_route_path(conn, :index, authority_id))
+              |> redirect(to: web_route_path(Endpoint, :index, authority_id))
             else
               render conn, "edit.html", route: route, changeset: changeset, authority: authority
             end
@@ -122,7 +129,8 @@ defmodule RouterManager.RouteController do
     end
   end
 
-  def delete(conn, %{"authority_id" => authority_id, "id" => id}) do
+  # DELETE "/authorities/:parent_id/routes/:id"
+  def delete(conn, %{"parent_id" => authority_id, "id" => id}) do
     case get_authority_and_route(authority_id, id) do
       nil ->
         render conn, "authority_not_found.html"
@@ -133,7 +141,7 @@ defmodule RouterManager.RouteController do
 
         conn
         |> put_flash(:info, "Route deleted successfully.")
-        |> redirect(to: web_authority_route_path(conn, :index, authority.id))
+        |> redirect(to: web_route_path(Endpoint, :index, authority.id))
     end
   end
 

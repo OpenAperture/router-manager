@@ -1,5 +1,5 @@
 <h2>Showing authority <%= display(@authority) %></h2>
-<h4>See <%= link "Routes", to: web_authority_route_path(@conn, :index, @authority) %></h4>
+<h4>See <%= link "Routes", to: web_route_path(@conn, :index, @authority) %></h4>
 
 <ul>
 

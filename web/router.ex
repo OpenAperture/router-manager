@@ -17,17 +17,15 @@ defmodule RouterManager.Router do
 
     get "/", AuthorityController, :index
 
-    resources "/authorities", AuthorityController do
-      resources "/routes", RouteController
-    end
+    resources "/authorities", AuthorityController
+    resources "/authorities/:parent_id/routes", RouteController
   end
 
   scope "/api", RouterManager, as: :api do
     pipe_through :api
 
-    resources "/authorities", Api.AuthorityController do
-      resources "/routes", Api.RouteController
-    end
+    resources "/authorities", Api.AuthorityController
+    resources "/authorities/:parent_id/routes", Api.RouteController
 
     get "/routes", Api.RoutesController, :index
   end

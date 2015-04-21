@@ -18,13 +18,13 @@
       <td><%= route.secure_connection %></td>
 
       <td class="text-right">
-        <%= link "Show", to: web_authority_route_path(@conn, :show, @authority, route), class: "btn btn-default btn-xs" %>
-        <%= link "Edit", to: web_authority_route_path(@conn, :edit, @authority, route), class: "btn btn-default btn-xs" %>
-        <%= link "Delete", to: web_authority_route_path(@conn, :delete, @authority, route), method: :delete, class: "btn btn-danger btn-xs" %>
+        <%= link "Show", to: web_route_path(@conn, :show, @authority, route), class: "btn btn-default btn-xs" %>
+        <%= link "Edit", to: web_route_path(@conn, :edit, @authority, route), class: "btn btn-default btn-xs" %>
+        <%= link "Delete", to: web_route_path(@conn, :delete, @authority, route), method: :delete, class: "btn btn-danger btn-xs" %>
       </td>
     </tr>
 <% end %>
   </tbody>
 </table>
 
-<%= link "New route", to: web_authority_route_path(@conn, :new, @authority), class: "btn btn-primary" %>
+<%= link "New route", to: web_route_path(@conn, :new, @authority), class: "btn btn-primary" %>

@@ -1,3 +1,3 @@
 <h2>Route not found</h2>
 
-<%= link "Back", to: web_authority_route_path(@conn, :index, @authority.id) %>
+<%= link "Back", to: web_route_path(@conn, :index, @authority) %>

@@ -1,6 +1,6 @@
 <h2>New route for authority <%= display(@authority) %></h2>
 
 <%= render "form.html", changeset: @changeset,
-                        action: web_authority_route_path(@conn, :create, @authority) %>
+                        action: web_route_path(@conn, :create, @authority) %>
 
-<%= link "Back", to: web_authority_route_path(@conn, :index, @authority) %>
+<%= link "Back", to: web_route_path(@conn, :index, @authority) %>
