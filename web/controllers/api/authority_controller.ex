@@ -17,9 +17,9 @@ defmodule RouterManager.Api.AuthorityController do
 
   @sendable_fields [:id, :hostname, :port, :inserted_at, :updated_at]
 
-  # GET /api/authorities?authority=somehost%3Asomeport
-  def index(conn, %{"authority" => authority}) do
-    case parse_authority(authority) do
+  # GET /api/authorities?hostspec=somehost%3Asomeport
+  def index(conn, %{"hostspec" => hostspec}) do
+    case parse_hostspec(hostspec) do
       {:ok, hostname, port} ->
         case get_authority_by_hostname_and_port(hostname, port) do
           nil ->
@@ -134,23 +134,5 @@ defmodule RouterManager.Api.AuthorityController do
     |> where([a], fragment("lower(?) = lower(?)", a.hostname, ^hostname))
     |> where([a], a.port == ^port)
     |> Repo.one
-  end
-
-  @spec parse_authority(String.t) :: {:ok, String.t, integer} | :error
-  defp parse_authority(authority) do
-    colon_regex = ~r/(?<hostname>.*):(?<port>\d+)$/
-    urlencoded_regex = ~r/(?<hostname>.*)%3[aA](?<port>\d+)$/
-
-    cond do
-      Regex.match?(colon_regex, authority) ->
-        captures = Regex.named_captures(colon_regex, authority)
-        {:ok, captures["hostname"], String.to_integer(captures["port"])}
-
-      Regex.match?(urlencoded_regex, authority) ->
-        captures = Regex.named_captures(urlencoded_regex, authority)
-        {:ok, captures["hostname"], String.to_integer(captures["port"])}
-
-      true -> :error
-    end
   end
 end

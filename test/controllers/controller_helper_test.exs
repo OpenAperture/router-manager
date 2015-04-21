@@ -1,5 +1,6 @@
 defmodule RouterManager.ControllerHelper.Test do
   use ExUnit.Case
+  doctest RouterManager.ControllerHelper
 
   import RouterManager.ControllerHelper
 

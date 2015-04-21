@@ -21,7 +21,7 @@ defmodule RouterManager.Api.AuthorityController.Test do
 
   test "GET /api/authorities with query param (url uppercase encoded)", context do
     a1 = List.first(context[:authorities])
-    path = "/api/authorities?authority=#{a1.hostname}%3A#{a1.port}"
+    path = "/api/authorities?hostspec=#{a1.hostname}%3A#{a1.port}"
     conn = get conn(), path
     assert conn.status == 200
 
@@ -32,7 +32,7 @@ defmodule RouterManager.Api.AuthorityController.Test do
 
   test "GET /api/authorities with query param (url lowercase encoded)", context do
     a1 = List.first(context[:authorities])
-    path = "/api/authorities?authority=#{a1.hostname}%3a#{a1.port}"
+    path = "/api/authorities?hostspec=#{a1.hostname}%3a#{a1.port}"
     conn = get conn(), path
     assert conn.status == 200
 
@@ -43,7 +43,7 @@ defmodule RouterManager.Api.AuthorityController.Test do
 
   test "GET /api/authorities with query param (not url encoded)", context do
     a1 = List.first(context[:authorities])
-    path = "/api/authorities?authority=#{a1.hostname}:#{a1.port}"
+    path = "/api/authorities?hostspec=#{a1.hostname}:#{a1.port}"
     conn = get conn(), path
     assert conn.status == 200
 
@@ -53,13 +53,13 @@ defmodule RouterManager.Api.AuthorityController.Test do
   end
 
   test "GET /api/authorities with query param for non-existent host" do
-    path = "/api/authorities?authority=not_a_real_host:9999"
+    path = "/api/authorities?hostspec=not_a_real_host:9999"
     conn = get conn(), path
     assert conn.status == 404
   end
 
   test "GET /api/authorities with invalied query param" do
-    path = "/api/authorities?authority=hostname^9999"
+    path = "/api/authorities?hostspec=hostname^9999"
     conn = get conn(), path
     assert conn.status == 400
   end
