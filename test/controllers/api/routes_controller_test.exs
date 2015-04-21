@@ -1,0 +1,81 @@
+defmodule RouterManager.Api.RoutesController.Test do
+  use RouterManager.ConnCase
+
+  alias RouterManager.Authority
+  alias RouterManager.Route
+
+  setup do
+    # Make the entries old
+    datetime = Ecto.DateTime.from_date_and_time(
+      %Ecto.Date{year: 2014, month: 1, day: 1},
+      %Ecto.Time{hour: 1, min: 1, sec: 1})
+
+    a1 = Repo.insert(%Authority{hostname: "test", port: 80, inserted_at: datetime, updated_at: datetime})
+    a2 = Repo.insert(%Authority{hostname: "test2", port: 80, inserted_at: datetime, updated_at: datetime})
+
+    Repo.insert(%Route{authority_id: a1.id, hostname: "east.test", port: 80, inserted_at: datetime, updated_at: datetime})
+    Repo.insert(%Route{authority_id: a1.id, hostname: "west.test", port: 80, inserted_at: datetime, updated_at: datetime})
+    Repo.insert(%Route{authority_id: a1.id, hostname: "test.test", port: 80, inserted_at: datetime, updated_at: datetime})
+    Repo.insert(%Route{authority_id: a1.id, hostname: "staging.test", port: 80, inserted_at: datetime, updated_at: datetime})
+
+    Repo.insert(%Route{authority_id: a2.id, hostname: "main.test2", port: 80, inserted_at: datetime, updated_at: datetime})
+
+    on_exit fn ->
+      Repo.delete_all(Route)
+      Repo.delete_all(Authority)
+    end
+
+    {:ok, a1: a1, a2: a2}
+  end
+
+  test "GET /api/routes" do
+    conn = get conn(), "/api/routes"
+
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+
+    assert Map.has_key?(body, "test:80")
+    assert Map.has_key?(body, "test2:80")
+    assert Map.has_key?(body, "timestamp")
+
+    assert length(body["test:80"]) == 4
+    assert length(body["test2:80"]) == 1
+  end
+
+  test "retrieve only updated routes -- no updates" do
+    conn = get conn(), "/api/routes"
+
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+
+    timestamp = body["timestamp"]
+
+    # Wait a second...
+    :timer.sleep(1000)
+    conn = get conn(), "/api/routes?updated_since=#{timestamp}"
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+    assert length(Map.keys(body)) == 1
+    assert Map.has_key?(body, "timestamp")
+
+    assert body["timestamp"] > timestamp
+  end
+
+  test "retrieve updated routes -- with updates" do
+    now = :os.timestamp
+    {date, {hour, min, sec}} = :calendar.now_to_universal_time(now)
+    {:ok, create_datetime} = Ecto.DateTime.load({date, {hour, min, sec, 0}})
+
+    new_authority = Repo.insert(%Authority{hostname: "NewAuthority", port: 1, inserted_at: create_datetime, updated_at: create_datetime})
+    Repo.insert(%Route{authority_id: new_authority.id, hostname: "NewRoute", port: 1, inserted_at: create_datetime, updated_at: create_datetime})
+
+    {megas, secs, _} = now
+    timestamp = megas * 1_000_000 + secs
+
+    conn = get conn(), "/api/routes?updated_since=#{timestamp}"
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+    assert length(Map.keys(body)) == 2
+    assert Map.has_key?(body, "#{new_authority.hostname}:#{new_authority.port}")
+  end
+end
