@@ -52,7 +52,7 @@ defmodule RouterManager.RouteController do
         else
           render conn, "new.html", changeset: changeset, authority: authority
         end
-      {authority, route} ->
+      {authority, _route} ->
         changeset = Route.changeset(%Route{authority_id: authority.id}, route_params)
         route_string = "#{route_params["hostname"]}:#{route_params["port"]}"
         authority_string = "#{authority.hostname}:#{authority.port}"
@@ -133,7 +133,7 @@ defmodule RouterManager.RouteController do
 
         conn
         |> put_flash(:info, "Route deleted successfully.")
-        |> redirect(to: web_authority_route_path(conn, :index, authority_id))
+        |> redirect(to: web_authority_route_path(conn, :index, authority.id))
     end
   end
 

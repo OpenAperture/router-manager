@@ -88,7 +88,7 @@ defmodule RouterManager.Api.AuthorityController do
           |> put_status(:bad_request)
           |> json inspect(changeset.errors)
         end
-      authority ->
+      _authority ->
         resp(conn, :conflict, "")
     end
   end

@@ -83,7 +83,7 @@ defmodule RouterManager.Api.AuthorityController.Test do
     assert body["port"] == a1.port
   end
 
-  test "GET /api/authorities/:id id not found", context do
+  test "GET /api/authorities/:id id not found" do
     conn = get conn(), "/api/authorities/1234567890"
     assert conn.status == 404
   end
