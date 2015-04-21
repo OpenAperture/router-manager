@@ -25,6 +25,8 @@ defmodule RouterManager.Router do
     pipe_through :api
 
     resources "/authorities", Api.AuthorityController
+
+    delete "/authorities/:parent_id/routes/clear", Api.RouteController, :clear
     resources "/authorities/:parent_id/routes", Api.RouteController
 
     get "/routes", Api.RoutesController, :index
