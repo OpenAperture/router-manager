@@ -1,7 +1,10 @@
 defmodule RouterManager.Api.AuthorityController.Test do
   use RouterManager.ConnCase
 
+  import Ecto.Query
+
   alias RouterManager.Authority
+  alias RouterManager.DeletedAuthority
   alias RouterManager.Route
 
   setup do
@@ -12,6 +15,7 @@ defmodule RouterManager.Api.AuthorityController.Test do
     Repo.insert(%Route{authority_id: a1.id, hostname: "test2", port: 80})
 
     on_exit fn ->
+      Repo.delete_all(DeletedAuthority)
       Repo.delete_all(Route)
       Repo.delete_all(Authority)
     end
@@ -106,6 +110,26 @@ defmodule RouterManager.Api.AuthorityController.Test do
     assert conn.status == 204
 
     assert length(Repo.all(Route)) == routes_count - 2
+  end
+
+  test "DELETE /api/authorities/1 creates a record in the deleted_authorities table", context do
+    a1 = List.first(context[:authorities])
+
+    deleted_count = DeletedAuthority |> Repo.all |> length
+
+    conn = delete conn(), "/api/authorities/#{a1.id}"
+    assert conn.status == 204
+
+    deleted = DeletedAuthority
+              |> where([da], da.hostname == ^a1.hostname)
+              |> where([da], da.port == ^a1.port)
+              |> Repo.one
+
+    assert DeletedAuthority |> Repo.all |> length == deleted_count + 1
+
+    assert deleted != nil
+    assert deleted.hostname == a1.hostname
+    assert deleted.port == a1.port
   end
 
   test "DELETE /api/authorities/123456789" do

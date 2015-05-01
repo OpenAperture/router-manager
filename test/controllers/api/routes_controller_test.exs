@@ -2,6 +2,7 @@ defmodule RouterManager.Api.RoutesController.Test do
   use RouterManager.ConnCase
 
   alias RouterManager.Authority
+  alias RouterManager.DeletedAuthority
   alias RouterManager.Route
 
   setup do
@@ -19,6 +20,11 @@ defmodule RouterManager.Api.RoutesController.Test do
     Repo.insert(%Route{authority_id: a1.id, hostname: "staging.test", port: 80, inserted_at: datetime, updated_at: datetime})
 
     Repo.insert(%Route{authority_id: a2.id, hostname: "main.test2", port: 80, inserted_at: datetime, updated_at: datetime})
+
+    Repo.insert(%DeletedAuthority{hostname: "test.host", port: 1, inserted_at: datetime, updated_at: datetime})
+    Repo.insert(%DeletedAuthority{hostname: "test.host", port: 2, inserted_at: datetime, updated_at: datetime})
+    Repo.insert(%DeletedAuthority{hostname: "test.host", port: 3, inserted_at: datetime, updated_at: datetime})
+    Repo.insert(%DeletedAuthority{hostname: "test.host", port: 3, inserted_at: datetime, updated_at: datetime})
 
     on_exit fn ->
       Repo.delete_all(Route)
@@ -77,5 +83,51 @@ defmodule RouterManager.Api.RoutesController.Test do
     body = Poison.decode!(conn.resp_body)
     assert length(Map.keys(body)) == 2
     assert Map.has_key?(body, "#{new_authority.hostname}:#{new_authority.port}")
+  end
+
+  test "retrieve all deleted routes" do
+    conn = get conn(), "/api/routes/deleted"
+
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+    assert length(body) == 3
+    assert "test.host:1" in body
+    assert "test.host:2" in body
+    assert "test.host:3" in body
+  end
+
+  test "retrieve only newly-deleted routes -- none" do
+    conn = get conn(), "/api/routes"
+
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+
+    timestamp = body["timestamp"]
+    # Wait a second...
+    :timer.sleep(1000)
+    conn = get conn(), "/api/routes/deleted?updated_since=#{timestamp}"
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+
+    assert length(body) == 0
+  end
+
+  test "retrieve newly-deleted routes" do
+    conn = get conn(), "/api/routes"
+
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+
+    timestamp = body["timestamp"]
+
+    deleted_authority = Repo.insert(%DeletedAuthority{hostname: "test", port: 9})
+
+    conn = get conn(), "/api/routes/deleted?updated_since=#{timestamp}"
+    assert conn.status == 200
+    body = Poison.decode!(conn.resp_body)
+
+    assert length(body) == 1
+    first = List.first(body)
+    assert first == "#{deleted_authority.hostname}:#{deleted_authority.port}"
   end
 end

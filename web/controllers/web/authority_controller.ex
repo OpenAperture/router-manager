@@ -4,6 +4,7 @@ defmodule RouterManager.AuthorityController do
   import Ecto.Query
 
   alias RouterManager.Authority
+  alias RouterManager.DeletedAuthority
   alias RouterManager.Route
 
   plug :scrub_params, "authority" when action in [:create, :update]
@@ -76,6 +77,11 @@ defmodule RouterManager.AuthorityController do
           Route
           |> where([r], r.authority_id == ^id)
           |> Repo.delete_all
+
+          # Create a deleted_authority record
+          %DeletedAuthority{}
+          |> DeletedAuthority.changeset(%{hostname: authority.hostname, port: authority.port})
+          |> Repo.insert
 
           Repo.delete(authority)
         end)

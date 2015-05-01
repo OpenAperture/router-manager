@@ -7,6 +7,7 @@ defmodule RouterManager.Api.AuthorityController do
   import RouterManager.ParamsPlug
 
   alias RouterManager.Authority
+  alias RouterManager.DeletedAuthority
   alias RouterManager.Endpoint
   alias RouterManager.Route
 
@@ -53,13 +54,18 @@ defmodule RouterManager.Api.AuthorityController do
   def delete(conn, %{"id" => id}) do
     case Repo.get(Authority, id) do
       nil -> resp conn, :not_found, ""
-      host ->
+      authority ->
         result = Repo.transaction(fn ->
           Route
           |> where([r], r.authority_id == ^id)
           |> Repo.delete_all
 
-          Repo.delete(host)
+          # Create a deleted_authority record
+          %DeletedAuthority{}
+          |> DeletedAuthority.changeset(%{hostname: authority.hostname, port: authority.port})
+          |> Repo.insert
+
+          Repo.delete(authority)
         end)
 
         case result do

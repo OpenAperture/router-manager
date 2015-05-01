@@ -30,5 +30,6 @@ defmodule RouterManager.Router do
     resources "/authorities/:parent_id/routes", Api.RouteController
 
     get "/routes", Api.RoutesController, :index
+    get "/routes/deleted", Api.RoutesController, :index_deleted
   end
 end

@@ -6,12 +6,14 @@ defmodule RouterManager.Api.RoutesController do
   import RouterManager.ParamsPlug
 
   alias RouterManager.Authority
+  alias RouterManager.DeletedAuthority
   alias RouterManager.Route
 
   plug :parse_as_integer, {"updated_since", 400}
   plug :action
 
   # Only fetch changes newer than a particular timestamp
+  # GET /routes?updated_since=timestamp
   def index(conn, %{"updated_since" => updated_since}) do
     erlang_ts = unix_timestamp_to_erlang(updated_since)
     {date, {hour, min, sec}} = :calendar.now_to_universal_time(erlang_ts)
@@ -27,6 +29,7 @@ defmodule RouterManager.Api.RoutesController do
   end
 
   # fetch all routes
+  # GET /routes
   def index(conn, _params) do
     routes = Authority
              |> join(:inner, [a], r in Route, r.authority_id == a.id)
@@ -34,6 +37,34 @@ defmodule RouterManager.Api.RoutesController do
              |> Repo.all
 
     json conn, build_response(routes)
+  end
+
+  # GET /routes/deleted?updated_since=timestamp
+  def index_deleted(conn, %{"updated_since" => updated_since}) do
+    erlang_ts = unix_timestamp_to_erlang(updated_since)
+    {date, {hour, min, sec}} = :calendar.now_to_universal_time(erlang_ts)
+    {:ok, ecto_datetime} = Ecto.DateTime.load({date, {hour, min, sec, 0}})
+
+    deleted = DeletedAuthority
+              |> where([da], da.updated_at >= ^ecto_datetime)
+              |> Repo.all
+
+    specs = deleted
+            |> Enum.map(fn da -> "#{da.hostname}:#{da.port}" end)
+            |> Enum.uniq
+
+    json conn, specs
+  end
+
+  # GET /routes/deleted
+  def index_deleted(conn, _params) do
+    deleted = Repo.all(DeletedAuthority)
+
+    specs = deleted
+            |> Enum.map(fn da -> "#{da.hostname}:#{da.port}" end)
+            |> Enum.uniq
+
+    json conn, specs
   end
 
   # Converts the list of {authority, route} tuples into a map that can be
