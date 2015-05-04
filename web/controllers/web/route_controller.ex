@@ -48,11 +48,26 @@ defmodule RouterManager.RouteController do
       {authority, nil} ->
         changeset = Route.changeset(%Route{authority_id: authority.id}, route_params)
         if changeset.valid? do
-          Repo.insert(changeset)
+          result = Repo.transaction(fn ->
+            route = Repo.insert(changeset)
 
-          conn
-          |> put_flash(:info, "Route created successfully.")
-          |> redirect(to: web_route_path(Endpoint, :index, authority.id))
+            authority
+            |> Authority.changeset(%{updated_at: Ecto.DateTime.utc})
+            |> Repo.update
+
+            route
+          end)
+
+          case result do
+            {:ok, route} ->
+              conn
+              |> put_flash(:info, "Route created successfully.")
+              |> redirect(to: web_route_path(Endpoint, :index, authority.id))
+            {:error, error} ->
+              conn
+              |> put_flash(:error, "An error occurred creating the new route.")
+              |> redirect(to: web_route_path(Endpoint, :new, authority.id))
+          end
         else
           render conn, "new.html", changeset: changeset, authority: authority
         end

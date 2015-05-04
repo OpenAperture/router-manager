@@ -7,6 +7,8 @@ defmodule RouterManager.AuthorityController do
   alias RouterManager.DeletedAuthority
   alias RouterManager.Route
 
+  alias RouterManager.Endpoint
+
   plug :scrub_params, "authority" when action in [:create, :update]
   plug :action
 
@@ -28,7 +30,7 @@ defmodule RouterManager.AuthorityController do
 
       conn
       |> put_flash(:info, "Authority created successfully.")
-      |> redirect(to: web_authority_path(conn, :index))
+      |> redirect(to: web_authority_path(Endpoint, :index))
     else
       render conn, "new.html", changeset: changeset
     end
@@ -57,11 +59,27 @@ defmodule RouterManager.AuthorityController do
         changeset = Authority.changeset(authority, authority_params)
 
         if changeset.valid? do
-          Repo.update(changeset)
+          result = Repo.transaction(fn ->
+              # Create a deleted_authority record, since we want the router
+              # instances to purge any record of the old host:port combo from
+              # their caches.
+              %DeletedAuthority{}
+              |> DeletedAuthority.changeset(%{hostname: authority.hostname, port: authority.port})
+              |> Repo.insert
 
-          conn
-          |> put_flash(:info, "Authority updated successfully.")
-          |> redirect(to: web_authority_path(conn, :index))
+              Repo.update(changeset)
+            end)
+
+            case result do
+              {:ok, authority} ->
+                conn
+                |> put_flash(:info, "Authority updated successfully.")
+                |> redirect(to: web_authority_path(Endpoint, :index))
+              {:error, error} ->
+                conn
+                |> put_flash(:error, "An error occurred updating the authority.")
+                |> redirect(to: web_authority_path(Endpoint, :edit, authority.id))
+            end
         else
           render conn, "edit.html", authority: authority, changeset: changeset
         end
@@ -88,7 +106,7 @@ defmodule RouterManager.AuthorityController do
 
         conn
         |> put_flash(:info, "Authority deleted successfully.")
-        |> redirect(to: web_authority_path(conn, :index))
+        |> redirect(to: web_authority_path(Endpoint, :index))
     end
   end
 end

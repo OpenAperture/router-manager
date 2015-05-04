@@ -201,6 +201,32 @@ defmodule RouterManager.Api.AuthorityController.Test do
     assert new_a1.port == new_port
   end
 
+  test "PUT /api/authorities/:id creates a DeletedAuthority for the old hostname:port combo", context do
+    deleted_count = DeletedAuthority |> Repo.all |> length
+
+    a1 = List.first(context[:authorities])
+    new_port = 1337
+    authority = %{hostname: a1.hostname, port: new_port}
+
+    conn = put conn(), "/api/authorities/#{a1.id}", authority
+
+    assert conn.status == 204
+
+    new_a1 = Repo.get(Authority, a1.id)
+    assert new_a1.port == new_port
+    deleted = DeletedAuthority
+              |> where([da], da.hostname == ^a1.hostname)
+              |> where([da], da.port == ^a1.port)
+              |> Repo.one
+
+    deleted = Repo.all(DeletedAuthority)
+    assert length(deleted) == deleted_count + 1
+    
+    da = List.first(deleted)
+    assert da.hostname == a1.hostname
+    assert da.port == a1.port
+  end
+
   test "PUT /api/authorities/:id id not found", context do
     a1 = List.first(context[:authorities])
     new_port = 1337

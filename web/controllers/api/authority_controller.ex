@@ -117,12 +117,28 @@ defmodule RouterManager.Api.AuthorityController do
           existing = get_authority_by_hostname_and_port(hostname, port)
 
           if existing == nil || existing.id == authority.id do
-            Repo.update(changeset)
-            path = api_authority_path(Endpoint, :show, authority)
+            result = Repo.transaction(fn ->
+              # Create a deleted_authority record, since we want the router
+              # instances to purge any record of the old host:port combo from
+              # their caches.
+              %DeletedAuthority{}
+              |> DeletedAuthority.changeset(%{hostname: authority.hostname, port: authority.port})
+              |> Repo.insert
 
-            conn
-            |> put_resp_header("location", path)
-            |> resp(:no_content, "")
+              Repo.update(changeset)
+            end)
+
+            case result do
+              {:ok, authority} ->
+                path = api_authority_path(Endpoint, :show, authority)
+
+                conn
+                |> put_resp_header("location", path)
+                |> resp(:no_content, "")
+              {:error, error} ->
+                Logger.error "Error updating authority #{authority.id}: #{inspect error}"
+                resp conn, :internal_server_error, ""
+            end
           else
             resp(conn, :conflict, "")
           end
